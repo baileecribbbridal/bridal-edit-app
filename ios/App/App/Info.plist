@@ -22,8 +22,27 @@
     <string>$(MARKETING_VERSION)</string>
     <key>CFBundleVersion</key>
     <string>$(CURRENT_PROJECT_VERSION)</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>com.thebridaledit.auth</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>thebridaledit</string>
+            </array>
+        </dict>
+    </array>
     <key>LSRequiresIPhoneOS</key>
     <true/>
+    <key>NSCameraUsageDescription</key>
+    <string>The Bridal Edit needs camera access so you can take a profile or inspiration photo to upload to your account.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>The Bridal Edit needs access to your photo library so you can choose a profile or inspiration photo to upload.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>The Bridal Edit needs permission to save photos to your library when you download or share images from the app.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>The Bridal Edit may use the microphone if you record a video while taking a photo. Your microphone is never used otherwise.</string>
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsArbitraryLoadsInWebContent</key>

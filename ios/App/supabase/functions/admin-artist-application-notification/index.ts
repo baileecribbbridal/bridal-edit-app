@@ -55,6 +55,15 @@ function buildNotificationPayload(application: ArtistApplicationNotification) {
   };
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function buildEmailHtml(payload: ReturnType<typeof buildNotificationPayload>) {
   const rows = [
     ["Business name", payload.businessName],
@@ -72,8 +81,8 @@ function buildEmailHtml(payload: ReturnType<typeof buildNotificationPayload>) {
     <table cellpadding="6" cellspacing="0" style="border-collapse: collapse;">
       ${rows.map(([label, value]) => `
         <tr>
-          <td style="font-weight: 700;">${label}</td>
-          <td>${value}</td>
+          <td style="font-weight: 700;">${escapeHtml(label)}</td>
+          <td>${escapeHtml(value)}</td>
         </tr>
       `).join("")}
     </table>

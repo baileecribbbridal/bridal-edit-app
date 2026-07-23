@@ -2,7 +2,7 @@ create table if not exists public.bride_inspo_photos (
     id uuid primary key default gen_random_uuid(),
     bride_id uuid not null,
     image_url text not null,
-    caption text,
+    notes text,
     category text,
     created_at timestamptz default now()
 );

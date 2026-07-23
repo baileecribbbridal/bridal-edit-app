@@ -2,8 +2,6 @@ create table if not exists public.bride_current_photos (
     id uuid primary key default gen_random_uuid(),
     bride_id uuid not null,
     image_url text not null,
-    photo_type text,
-    sort_order integer default 0,
     created_at timestamptz default now()
 );
 

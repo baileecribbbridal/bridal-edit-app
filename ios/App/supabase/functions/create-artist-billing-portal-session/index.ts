@@ -27,6 +27,40 @@ function findStripeCustomerId(...records: Array<Record<string, unknown> | null |
   return null;
 }
 
+function cleanEmail(value: unknown) {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+async function findStripeCustomerIdByEmail(email: string, stripeSecretKey: string) {
+  if (!email) return null;
+
+  const searchResponse = await fetch(
+    `https://api.stripe.com/v1/customers/search?${new URLSearchParams({ query: `email:'${email.replace(/'/g, "\\'")}'`, limit: "1" })}`,
+    {
+      headers: {
+        Authorization: `Bearer ${stripeSecretKey}`,
+      },
+    },
+  );
+  const searchJson = await searchResponse.json();
+  const searchCustomerId = searchJson?.data?.[0]?.id;
+  if (typeof searchCustomerId === "string" && searchCustomerId.trim()) {
+    return searchCustomerId.trim();
+  }
+
+  const listResponse = await fetch(
+    `https://api.stripe.com/v1/customers?${new URLSearchParams({ email, limit: "1" })}`,
+    {
+      headers: {
+        Authorization: `Bearer ${stripeSecretKey}`,
+      },
+    },
+  );
+  const listJson = await listResponse.json();
+  const listCustomerId = listJson?.data?.[0]?.id;
+  return typeof listCustomerId === "string" && listCustomerId.trim() ? listCustomerId.trim() : null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -49,12 +83,13 @@ serve(async (req) => {
       });
     }
 
+    const userJwt = authHeader.replace(/^Bearer\s+/i, "");
+
     const supabase = createClient(supabaseUrl, serviceRoleKey, {
-      global: { headers: { Authorization: authHeader } },
+      global: { headers: { Authorization: `Bearer ${userJwt}` } },
     });
 
-    const token = authHeader.replace(/^Bearer\s+/i, "");
-    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    const { data: userData, error: userError } = await supabase.auth.getUser(userJwt);
 
     if (userError || !userData.user) {
       return new Response(JSON.stringify({ error: "Not authenticated." }), {
@@ -63,13 +98,23 @@ serve(async (req) => {
       });
     }
 
+    const body = await req.json().catch(() => ({}));
     const user = userData.user;
-    const [{ data: artistProfile }, { data: appProfile }] = await Promise.all([
+    const email = cleanEmail(body.email) || cleanEmail(user.email);
+    const [{ data: artistProfileByUser }, { data: artistProfileByEmail }, { data: artistApplication }, { data: appProfile }] = await Promise.all([
       supabase.from("artist_profiles").select("*").eq("user_id", user.id).maybeSingle(),
+      email
+        ? supabase.from("artist_profiles").select("*").ilike("email", email).maybeSingle()
+        : Promise.resolve({ data: null }),
+      email
+        ? supabase.from("artist_applications").select("*").or(`user_id.eq.${user.id},email.ilike.${email}`).order("created_at", { ascending: false }).limit(1).maybeSingle()
+        : supabase.from("artist_applications").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(1).maybeSingle(),
       supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     ]);
 
-    const customerId = findStripeCustomerId(artistProfile, appProfile, user.user_metadata);
+    const artistProfile = artistProfileByUser || artistProfileByEmail;
+    const customerId = findStripeCustomerId(artistProfile, artistApplication, appProfile, user.user_metadata)
+      || await findStripeCustomerIdByEmail(email, stripeSecretKey);
 
     if (!customerId) {
       return new Response(JSON.stringify({ error: "No Stripe customer ID exists for this artist." }), {
@@ -78,7 +123,12 @@ serve(async (req) => {
       });
     }
 
-    const body = await req.json().catch(() => ({}));
+    console.log("ARTIST STRIPE CUSTOMER ID", customerId);
+
+    if (artistProfile?.id && artistProfile.stripe_customer_id !== customerId) {
+      await supabase.from("artist_profiles").update({ stripe_customer_id: customerId }).eq("id", artistProfile.id);
+    }
+
     const origin = req.headers.get("Origin") || supabaseUrl;
     const returnUrl = typeof body.return_url === "string" && body.return_url.trim()
       ? body.return_url.trim()

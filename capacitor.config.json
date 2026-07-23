@@ -1,5 +1,8 @@
 {
   "appId": "com.baileecribb.bridaledit",
   "appName": "The Bridal Edit",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "allowNavigation": ["*.supabase.co", "*.supabase.com"]
+  }
 }
