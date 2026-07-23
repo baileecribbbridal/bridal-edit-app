@@ -20,6 +20,8 @@ end $$;
 
 alter table public.saved_artists enable row level security;
 
+grant select, insert, delete on public.saved_artists to authenticated;
+
 do $$
 begin
     if not exists (

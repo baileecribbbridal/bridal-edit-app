@@ -148,6 +148,7 @@ serve(async (req) => {
       "line_items[0][quantity]": "1",
       success_url: successUrl,
       cancel_url: cancelUrl,
+      allow_promotion_codes: "true",
       "metadata[user_id]": user.id,
       "metadata[artist_profile_id]": artistProfile?.id || "",
       "metadata[email]": email,
