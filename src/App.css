@@ -1,0 +1,269 @@
+.artist-workspace-page {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.artist-section-label,
+.artist-status-card p,
+.artist-stat-card p,
+.artist-portfolio-controls label {
+  margin: 0;
+  font-family: 'Futura', 'Century Gothic', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #797979;
+}
+
+.artist-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border: 0.5px solid #e0e0e0;
+  background: #ffffff;
+  margin: 0 0 16px;
+  padding: 3px;
+}
+
+.artist-nav button {
+  min-width: 0;
+  border: 0;
+  border-right: 0.5px solid #e0e0e0;
+  background: #ffffff;
+  color: #797979;
+  padding: 10px 6px;
+  font-family: 'Futura', 'Century Gothic', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.artist-nav button:last-child {
+  border-right: 0;
+}
+
+.artist-nav button.active {
+  background: #1F1F1F;
+  color: #ffffff;
+}
+
+.artist-profile-summary-card,
+.artist-detail-card,
+.artist-upload-card,
+.artist-empty-card,
+.artist-status-card,
+.artist-stat-card,
+.artist-portfolio-card {
+  background: #ffffff;
+  border: 0.5px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 1.25rem;
+  min-width: 0;
+}
+
+.artist-profile-summary-card {
+  display: grid;
+  gap: 6px;
+}
+
+.artist-profile-summary-card h3 {
+  margin: 0;
+  font-family: 'Trajan Pro', 'Times New Roman', serif;
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  color: #000000;
+}
+
+.artist-summary-line {
+  margin: 0;
+  font-family: 'Garamond', 'Georgia', serif;
+  font-size: 14px;
+  font-style: italic;
+  color: #797979;
+  line-height: 1.55;
+}
+
+.artist-dashboard-sections {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.artist-status-grid,
+.artist-analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+}
+
+.artist-status-card {
+  padding: 1rem;
+  display: grid;
+  gap: 8px;
+}
+
+.artist-status-card strong,
+.artist-stat-card strong {
+  display: block;
+  font-family: 'Trajan Pro', 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: #000000;
+}
+
+.artist-status-card strong {
+  font-size: 15px;
+}
+
+.artist-stat-card strong {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.artist-stat-card {
+  display: grid;
+  gap: 12px;
+}
+
+.artist-completeness-list {
+  display: grid;
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.artist-completeness-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 0.5px solid #e0e0e0;
+  padding-bottom: 8px;
+}
+
+.artist-completeness-list span {
+  font-family: 'Garamond', 'Georgia', serif;
+  font-size: 14px;
+  color: #797979;
+}
+
+.artist-completeness-list strong {
+  font-family: 'Futura', 'Century Gothic', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #797979;
+}
+
+.artist-quick-link-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.artist-upload-card {
+  display: grid;
+  gap: 12px;
+}
+
+.artist-primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  background: #000000;
+  color: #ffffff;
+  border: 0;
+  border-radius: 0;
+  padding: 12px 18px;
+  font-family: 'Futura', 'Century Gothic', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.artist-primary-button.is-disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.artist-empty-card p {
+  margin: 0;
+  font-family: 'Garamond', 'Georgia', serif;
+  font-size: 14px;
+  font-style: italic;
+  color: #797979;
+  line-height: 1.6;
+}
+
+.artist-portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.artist-portfolio-card {
+  padding: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.artist-portfolio-card img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  display: block;
+  background: #eff7ff;
+  border: 0.5px solid #e0e0e0;
+  border-radius: 10px;
+}
+
+.artist-portfolio-controls {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.artist-portfolio-controls label {
+  display: grid;
+  gap: 5px;
+}
+
+.artist-portfolio-controls select {
+  width: 100%;
+  min-width: 0;
+  border: 0.5px solid #e0e0e0;
+  background: #ffffff;
+  color: #000000;
+  padding: 8px 9px;
+  font-family: 'Garamond', 'Georgia', serif;
+  font-size: 13px;
+  outline: none;
+}
+
+.artist-portfolio-controls button {
+  justify-self: start;
+  background: transparent;
+  color: #797979;
+  border: 0.5px solid #e0e0e0;
+  border-radius: 0;
+  padding: 7px 11px;
+  font-family: 'Futura', 'Century Gothic', sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+@media (max-width: 360px) {
+  .artist-portfolio-grid,
+  .artist-status-grid,
+  .artist-analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}

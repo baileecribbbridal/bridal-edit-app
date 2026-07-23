@@ -1,0 +1,2 @@
+[functions.create-artist-billing-portal-session]
+verify_jwt = false
