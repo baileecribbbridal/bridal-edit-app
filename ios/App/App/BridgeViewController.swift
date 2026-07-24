@@ -7,6 +7,7 @@ final class BridgeViewController: CAPBridgeViewController, WKScriptMessageHandle
 
     private let swipeDeckMessageName = "swipeDeck"
     private let startCheckoutMessageName = "startCheckout"
+    private let artistProfileShareMessageName = "artistProfileShare"
     private let checkoutSessionURL = URL(string: "https://wrkbkkbxkwawoabqfdeg.supabase.co/functions/v1/super-handler")!
     private let billingPortalSessionURL = URL(string: "https://wrkbkkbxkwawoabqfdeg.supabase.co/functions/v1/create-artist-billing-portal-session")!
     private let artistCheckoutSessionURL = URL(string: "https://wrkbkkbxkwawoabqfdeg.supabase.co/functions/v1/create-artist-checkout-session")!
@@ -39,6 +40,7 @@ final class BridgeViewController: CAPBridgeViewController, WKScriptMessageHandle
     deinit {
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: swipeDeckMessageName)
         webView?.configuration.userContentController.removeScriptMessageHandler(forName: startCheckoutMessageName)
+        webView?.configuration.userContentController.removeScriptMessageHandler(forName: artistProfileShareMessageName)
     }
 
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
@@ -53,6 +55,8 @@ final class BridgeViewController: CAPBridgeViewController, WKScriptMessageHandle
             presentSwipeDeck()
         case startCheckoutMessageName:
             startCheckout(with: message.body)
+        case artistProfileShareMessageName:
+            shareArtistProfile(with: message.body)
         default:
             return
         }
@@ -278,10 +282,59 @@ final class BridgeViewController: CAPBridgeViewController, WKScriptMessageHandle
         let userContentController = webView?.configuration.userContentController
         userContentController?.removeScriptMessageHandler(forName: swipeDeckMessageName)
         userContentController?.removeScriptMessageHandler(forName: startCheckoutMessageName)
+        userContentController?.removeScriptMessageHandler(forName: artistProfileShareMessageName)
         userContentController?.add(self, name: swipeDeckMessageName)
         userContentController?.add(self, name: startCheckoutMessageName)
+        userContentController?.add(self, name: artistProfileShareMessageName)
         userContentController?.addUserScript(WKUserScript(source: source, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
         webView?.evaluateJavaScript(source)
+    }
+
+    private func shareArtistProfile(with body: Any) {
+        guard let payload = body as? [String: Any] else {
+            print("ARTIST SHARE aborted: payload was not a dictionary")
+            return
+        }
+
+        let businessName = cleanShareText(payload["businessName"] as? String) ?? "a bridal artist"
+        let cleanSlug = cleanShareText(payload["slug"] as? String)
+        let cleanID = cleanShareText(payload["id"] as? String)
+        guard let profileIdentifier = cleanSlug ?? cleanID else {
+            print("Missing artist profile identifier for:", businessName)
+            return
+        }
+        if cleanSlug == nil {
+            print("WARNING: Artist slug missing; using UUID fallback")
+        }
+
+        let profileURLString = "https://bridal-edit-app.vercel.app/artist/\(profileIdentifier)"
+        let shareText = """
+        Check out \(businessName) on The Bridal Edit™!
+
+        \(profileURLString)
+        """
+
+        print("SHARE ARTIST ID:", cleanID ?? "nil")
+        print("SHARE ARTIST BUSINESS:", businessName)
+        print("SHARE ARTIST RAW SLUG:", cleanSlug ?? "nil")
+        print("PROFILE IDENTIFIER:", profileIdentifier)
+        print("SHARE TEXT:", shareText)
+
+        let activityController = UIActivityViewController(
+            activityItems: [shareText],
+            applicationActivities: nil
+        )
+        if let popover = activityController.popoverPresentationController {
+            popover.sourceView = view
+            popover.sourceRect = CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
+            popover.permittedArrowDirections = []
+        }
+        present(activityController, animated: true)
+    }
+
+    private func cleanShareText(_ value: String?) -> String? {
+        let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return trimmed.isEmpty ? nil : trimmed
     }
 
     private func presentSwipeDeck() {

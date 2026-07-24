@@ -1336,9 +1336,23 @@ const SCREEN_TO_PATH = {
 };
 
 const PATH_TO_SCREEN = Object.fromEntries(Object.entries(SCREEN_TO_PATH).map(([screen,path])=>[path,screen]));
+const PUBLIC_ARTIST_ROUTE_PREFIX = "/artist/";
+
+function publicArtistIdentifierFromPath(){
+  if(typeof window==="undefined")return "";
+  const pathname=window.location.pathname||"";
+  if(!pathname.startsWith(PUBLIC_ARTIST_ROUTE_PREFIX))return "";
+  const identifier=pathname.slice(PUBLIC_ARTIST_ROUTE_PREFIX.length).split("/")[0]||"";
+  try{
+    return decodeURIComponent(identifier).trim();
+  }catch{
+    return identifier.trim();
+  }
+}
 
 function initialScreenFromPath(){
   if(typeof window==="undefined")return "home";
+  if(publicArtistIdentifierFromPath())return "directory";
   return PATH_TO_SCREEN[window.location.pathname] || "home";
 }
 
@@ -5755,6 +5769,7 @@ function artistUpgradeFromProfile(profile){
       id:`${source}-${safeRow.id}`,
       source,
       raw_id:safeRow.id,
+      slug:typeof safeRow.slug==="string"?safeRow.slug:"",
       name:displayName,
       business_name:displayName,
       owner_name:ownerName,
@@ -5833,6 +5848,7 @@ function artistUpgradeFromProfile(profile){
 id,
 user_id,
 business_name,
+slug,
 owner_name,
 city,
 state,
@@ -6022,6 +6038,7 @@ is_active
         raw_id:match.id,
         user_id:match.user_id||fa.user_id||null,
         id:`profile-${match.id}`,
+        slug:typeof match.slug==="string"?match.slug:(fa.slug||""),
         profile_photo_url:match.profile_photo_url||fa.profile_photo_url||"",
         portfolio_image:match.profile_photo_url||fa.portfolio_image||"",
         portfolio_photos:supabasePhotos.length?supabasePhotos:(fa.portfolio_photos||[]),
@@ -6260,17 +6277,30 @@ is_active
     if(!artist) return;
     try{
       const displayName=artist?.business_name||artist?.name||"a bridal artist";
-      const city=artist?.city||"";
-      const aesthetic=artist?.aesthetic||"";
-      const location=[city,artistRegion(artist),artist?.country].filter(Boolean).join(", ");
-      const lines=[`Check out ${displayName} on The Bridal Edit™`];
-      if(location) lines.push(location);
-      if(aesthetic) lines.push(aesthetic);
-      const payload={title:displayName,text:lines.join(" — "),dialogTitle:"Share artist"};
-      if(hasArtistProfileId(artist)){
-        payload.url=`https://thebridaledit.com/artist/${artist.raw_id}`;
+      const cleanSlug=typeof artist?.slug==="string"?artist.slug.trim():"";
+      const rawIdentifier=[artist?.raw_id,artist?.artist_profile_id,artist?.profile_id,artist?.id]
+        .find(value=>value!==undefined&&value!==null&&typeof value!=="object"&&String(value).trim());
+      const cleanID=rawIdentifier?String(rawIdentifier).trim().replace(/^profile-([0-9a-fA-F-]{36})$/i,"$1"):"";
+      const profileIdentifier=cleanSlug||cleanID;
+      if(!profileIdentifier){
+        console.warn("SHARE ARTIST skipped: missing artist profile identifier", displayName);
+        return;
       }
-      await Share.share(payload);
+      if(!cleanSlug){
+        console.warn("WARNING: Artist slug missing; using UUID fallback", {artist_id:cleanID,business_name:displayName});
+      }
+      const profileURLString=`https://bridal-edit-app.vercel.app/artist/${encodeURIComponent(profileIdentifier)}`;
+      const shareText=`Check out ${displayName} on The Bridal Edit™!\n\n${profileURLString}`;
+      console.log("SHARE ARTIST ID:", cleanID||"nil");
+      console.log("SHARE ARTIST BUSINESS:", displayName);
+      console.log("SHARE ARTIST RAW SLUG:", cleanSlug||"nil");
+      console.log("PROFILE IDENTIFIER:", profileIdentifier);
+      console.log("SHARE TEXT:", shareText);
+      if(typeof window!=="undefined"&&window.webkit?.messageHandlers?.artistProfileShare){
+        window.webkit.messageHandlers.artistProfileShare.postMessage({slug:cleanSlug||null,id:cleanID||null,businessName:displayName});
+        return;
+      }
+      await Share.share({title:displayName,text:shareText,dialogTitle:"Share artist"});
     }catch(err){
       console.error("SHARE ARTIST ERROR:",err);
     }
@@ -6323,6 +6353,20 @@ is_active
     if(ratingA!==ratingB)return ratingB-ratingA;
     return String(a.business_name||a.name||"").localeCompare(String(b.business_name||b.name||""));
   });
+
+  useEffect(()=>{
+    const routeIdentifier=publicArtistIdentifierFromPath();
+    if(screen!=="directory"||selectedArtist||!routeIdentifier||!(approvedArtists||[]).length)return;
+    const normalizedIdentifier=routeIdentifier.toLowerCase();
+    const routeArtist=(approvedArtists||[]).find(artist=>{
+      const slug=String(artist?.slug||"").trim().toLowerCase();
+      const rawID=String(artist?.raw_id||"").trim().toLowerCase();
+      const id=String(artist?.id||"").trim().replace(/^profile-/i,"").toLowerCase();
+      return slug===normalizedIdentifier||rawID===normalizedIdentifier||id===normalizedIdentifier;
+    });
+    console.log("PUBLIC ARTIST ROUTE:", {identifier:routeIdentifier, matched_artist:routeArtist?.business_name||routeArtist?.name||null, matched_slug:routeArtist?.slug||null, matched_id:routeArtist?.raw_id||null});
+    if(routeArtist)setSelectedArtist(routeArtist);
+  },[screen,selectedArtist,approvedArtists]);
 
   useEffect(()=>{
     if(screen==="directory"&&!selectedArtist){
